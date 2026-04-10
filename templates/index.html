@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corrida dos Sapos — Naruto</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05080a;
+    --surface: #0c1218;
+    --surface2: #111c25;
+    --border: #1a2a38;
+    --text: #e8f0f5;
+    --muted: #ffffff;
+    --gold: #c9a84c;
+    --gold-light: #f0cc70;
+    --sans: 'Rajdhani', sans-serif;
+    --display: 'Cinzel Decorative', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 17px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(183,11,188,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(21,131,111,0.06) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(26,42,56,0.4) 39px, rgba(26,42,56,0.4) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(26,42,56,0.4) 39px, rgba(26,42,56,0.4) 40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(26px, 4vw, 40px);
+    color: var(--text);
+    line-height: 1.15;
+    text-shadow: 0 0 40px rgba(201,168,76,0.3);
+  }
+
+  h1 em {
+    color: var(--gold);
+    font-style: normal;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .stat-val {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .stat-val.gold { color: var(--gold); }
+
+  /* ── RAIAS ── */
+  .raia {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    transition: border-color 0.4s, box-shadow 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .raia::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .raia.vencedor { border-color: var(--gold) !important; box-shadow: 0 0 30px rgba(201,168,76,0.2); }
+  .raia.vencedor::before { opacity: 1; background: radial-gradient(ellipse at left center, rgba(201,168,76,0.07), transparent 70%); }
+
+  .raia-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .sapo-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .raia-nome {
+    font-family: var(--display);
+    font-size: 15px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .badge-vencedor {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.4);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .raia-pos {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .track {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    height: 34px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .track-bar {
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    min-width: 36px;
+    transition: width 0.32s cubic-bezier(0.34,1.4,0.64,1);
+    position: relative;
+  }
+
+  .track-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 50%, rgba(255,255,255,0.06));
+    border-radius: 5px;
+  }
+
+  .track-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: #000;
+  }
+
+  .finish {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: repeating-linear-gradient(to bottom, var(--gold) 0, var(--gold) 4px, transparent 4px, transparent 8px);
+    opacity: 0.3;
+  }
+
+  /* ── RESULTADO ── */
+  #resultado {
+    background: var(--surface);
+    border: 1px solid rgba(201,168,76,0.5);
+    border-radius: 14px;
+    padding: 26px;
+    margin-top: 1.5rem;
+    text-align: center;
+    display: none;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .res-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .res-nome {
+    font-family: var(--display);
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .res-detalhe { font-size: 15px; color: var(--muted); }
+
+  .res-aposta {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .res-aposta.ganhou { color: #4ade80; }
+  .res-aposta.perdeu { color: #f87171; }
+
+  /* ── BOTÕES ── */
+  .btn-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+
+  button {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 14px 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+  }
+
+  button:hover:not(:disabled) { border-color: var(--muted); color: var(--text); }
+  button.primary {
+    background: linear-gradient(135deg, var(--gold), #a07830);
+    color: #05080a;
+    border-color: transparent;
+    font-weight: 700;
+  }
+  button.primary:hover:not(:disabled) { background: linear-gradient(135deg, var(--gold-light), var(--gold)); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
+  button:active:not(:disabled) { transform: scale(0.97); }
+
+  /* ── CARD FLUTUANTE DE APOSTA ── */
+  #aposta-card {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 310px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.1);
+    z-index: 100;
+    transition: box-shadow 0.3s;
+  }
+
+  #aposta-card:hover { box-shadow: 0 24px 70px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.2); }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-family: var(--display);
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  .pontos-badge {
+    font-family: var(--display);
+    font-size: 16px;
+    color: var(--gold-light);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+
+  .card-body { padding: 18px 20px; }
+
+  .field-label {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  /* Seletor de sapo */
+  .sapo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .sapo-option {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    background: var(--surface2);
+  }
+
+  .sapo-option:hover { border-color: var(--muted); }
+
+  .sapo-option.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    box-shadow: 0 0 12px rgba(201,168,76,0.15);
+  }
+
+  .sapo-option img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    background: #000;
+  }
+
+  .sapo-option span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .sapo-option.selected span { color: var(--gold); }
+
+  /* Slider de pontos */
+  .slider-wrap { margin-bottom: 16px; }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .slider-val {
+    font-family: var(--display);
+    font-size: 20px;
+    color: var(--gold-light);
+  }
+
+  .slider-max { font-size: 13px; color: var(--muted); }
+
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 8px rgba(201,168,76,0.5);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .btn-apostar {
+    width: 100%;
+    padding: 13px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gold), #a07830);
+    color: #05080a;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 0;
+  }
+
+  .btn-apostar:hover:not(:disabled) { background: linear-gradient(135deg, var(--gold-light), var(--gold)); }
+  .btn-apostar:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Resumo aposta feita */
+  #aposta-resumo {
+    display: none;
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  #aposta-resumo strong { color: var(--gold); display: block; font-size: 15px; margin-bottom: 2px; }
+
+  /* Imagem do card */
+  .card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-top: 1px solid var(--border);
+    filter: brightness(0.85) saturate(1.1);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+  }
+
+  .pulsing { animation: pulse 1.2s ease infinite; }
+
+  @media (max-width: 680px) {
+    #aposta-card { position: static; width: 100%; border-radius: 14px; margin-bottom: 1.5rem; }
+    body::before { background-size: 30px 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CARD FLUTUANTE DE APOSTA -->
+<div id="aposta-card">
+  <div class="card-header">
+    <span class="card-title">Apostas</span>
+    <span class="pontos-badge" id="card-pontos">100 pts</span>
+  </div>
+  <div class="card-body">
+    <span class="field-label">Escolha seu sapo</span>
+    <div class="sapo-grid" id="sapo-grid">
+      {% for s in sapos %}
+      <div class="sapo-option" data-nome="{{ s.nome }}" onclick="selecionarSapo('{{ s.nome }}', this)">
+        <img src="{{ s.imagem }}" alt="{{ s.nome }}" onerror="this.style.display='none'">
+        <span>{{ s.nome }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="slider-wrap">
+      <span class="field-label">Pontos a apostar</span>
+      <div class="slider-top">
+        <span class="slider-val" id="slider-val">10</span>
+        <span class="slider-max" id="slider-max">/ 100 pts</span>
+      </div>
+      <input type="range" id="slider" min="1" max="100" value="10" step="1" oninput="atualizarSlider()">
+    </div>
+
+    <button class="btn-apostar" id="btn-apostar" onclick="fazerAposta()" disabled>Confirmar aposta</button>
+
+    <div id="aposta-resumo"></div>
+  </div>
+  <img class="card-img"
+    src="https://s2-valor.glbimg.com/T0li_MFk_BVay4hdUFRhEpImmxc=/0x0:1280x720/888x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_63b422c2caee4269b8b34177e8876b93/internal_photos/bs/2024/q/I/DTvoWlSielEAGGg3T1EQ/descubra-tudo-sobre-o-jogo-de-cassino-fortune-tiger-e-seus-segredos.jpg"
+    alt="Fortune">
+</div>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<div class="page">
+  <header>
+    <p class="eyebrow">simulação com threads</p>
+    <h1>CORRIDA DOS<br><em>SAPOS</em></h1>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-label">Distância</span>
+      <span class="stat-val">{{ distancia }}m</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Saltos</span>
+      <span class="stat-val gold" id="stat-saltos">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Tempo</span>
+      <span class="stat-val" id="stat-tempo">0.0s</span>
+    </div>
+  </div>
+
+  <div id="raias">
+    {% for s in sapos %}
+    <div class="raia" id="raia-{{ loop.index0 }}" style="border-color: {{ s.cor }}33;">
+      <div class="raia-header">
+        <img class="sapo-avatar" src="{{ s.imagem }}" alt="{{ s.nome }}" onerror="this.style.opacity='0'">
+        <span class="raia-nome">{{ s.nome }}</span>
+        <span class="raia-pos" id="pos-{{ loop.index0 }}">0 / {{ distancia }} m</span>
+      </div>
+      <div class="track">
+        <div class="track-bar" id="bar-{{ loop.index0 }}"
+             style="width:4%; background:{{ s.cor }}30; border:1px solid {{ s.cor }}88;">
+          <img class="track-avatar" src="{{ s.imagem }}" alt="" onerror="this.style.opacity='0'">
+        </div>
+        <div class="finish"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="resultado"></div>
+
+  <div class="btn-area">
+    <button class="primary" id="btn-start" onclick="iniciar()">Iniciar corrida</button>
+    <button id="btn-reset" onclick="resetar()" disabled>Resetar</button>
+  </div>
+</div>
+
+<script>
+const DIST = {{ distancia }};
+const SAPOS = {{ sapos | tojson }};
+
+let pontos = 100;
+let apostaFeita = null;
+let sapoSelecionado = null;
+let totalSaltos = 0;
+let inicio = null;
+let clockInterval = null;
+let es = null;
+let emCorrida = false;
+
+// ── APOSTA ──
+function selecionarSapo(nome, el) {
+  if (apostaFeita || emCorrida) return;
+  document.querySelectorAll('.sapo-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  sapoSelecionado = nome;
+  verificarBotaoAposta();
+}
+
+function atualizarSlider() {
+  const max = pontos;
+  const slider = document.getElementById('slider');
+  const val = Math.min(parseInt(slider.value), max);
+  slider.max = max;
+  document.getElementById('slider-val').textContent = val;
+  document.getElementById('slider-max').textContent = `/ ${max} pts`;
+}
+
+function verificarBotaoAposta() {
+  document.getElementById('btn-apostar').disabled = !sapoSelecionado || apostaFeita || emCorrida;
+}
+
+function fazerAposta() {
+  if (!sapoSelecionado || apostaFeita || emCorrida) return;
+  const valor = parseInt(document.getElementById('slider').value);
+
+  apostaFeita = { sapo: sapoSelecionado, valor };
+
+  document.getElementById('btn-apostar').disabled = true;
+  document.querySelectorAll('.sapo-option').forEach(o => {
+    o.style.pointerEvents = 'none';
+    if (!o.classList.contains('selected')) o.style.opacity = '0.4';
+  });
+  document.getElementById('slider').disabled = true;
+
+  const resumo = document.getElementById('aposta-resumo');
+  resumo.style.display = 'block';
+  resumo.innerHTML = `<strong>${sapoSelecionado}</strong>${valor} pontos apostados`;
+}
+
+function atualizarPontosBadge() {
+  document.getElementById('card-pontos').textContent = `${pontos} pts`;
+  document.getElementById('slider').max = pontos;
+  document.getElementById('slider-max').textContent = `/ ${pontos} pts`;
+  const sliderVal = parseInt(document.getElementById('slider').value);
+  if (sliderVal > pontos) {
+    document.getElementById('slider').value = pontos;
+    document.getElementById('slider-val').textContent = pontos;
+  }
+}
+
+// ── CORRIDA ──
+function atualizarBarra(nome, pos) {
+  const idx = SAPOS.findIndex(s => s.nome === nome);
+  if (idx === -1) return;
+  const pct = Math.min((pos / DIST) * 100, 100);
+  const bar = document.getElementById(`bar-${idx}`);
+  const posEl = document.getElementById(`pos-${idx}`);
+  if (bar) bar.style.width = Math.max(pct, 4) + '%';
+  if (posEl) posEl.textContent = `${pos} / ${DIST} m`;
+}
+
+function iniciar() {
+  if (emCorrida) return;
+  emCorrida = true;
+  totalSaltos = 0;
+  inicio = Date.now();
+
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-reset').disabled = true;
+  document.getElementById('resultado').innerHTML = '';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('btn-apostar').disabled = true;
+
+  SAPOS.forEach((_, i) => {
+    const nome = document.querySelector(`#raia-${i} .raia-nome`);
+    if (nome) nome.classList.add('pulsing');
+  });
+
+  clockInterval = setInterval(() => {
+    document.getElementById('stat-tempo').textContent =
+      ((Date.now() - inicio) / 1000).toFixed(1) + 's';
+  }, 100);
+
+  fetch('/iniciar').then(() => {
+    es = new EventSource('/stream');
+    es.onmessage = (e) => {
+      const ev = JSON.parse(e.data);
+
+      if (ev.tipo === 'progresso') {
+        totalSaltos++;
+        document.getElementById('stat-saltos').textContent = totalSaltos;
+        atualizarBarra(ev.nome, ev.posicao);
+      }
+
+      if (ev.tipo === 'vencedor') {
+        const idx = SAPOS.findIndex(s => s.nome === ev.nome);
+        const raia = document.getElementById(`raia-${idx}`);
+        raia.classList.add('vencedor');
+        const header = raia.querySelector('.raia-header');
+        if (!header.querySelector('.badge-vencedor')) {
+          const b = document.createElement('span');
+          b.className = 'badge-vencedor';
+          b.textContent = 'Vencedor';
+          header.insertBefore(b, header.querySelector('.raia-pos'));
+        }
+
+        const elapsed = ((Date.now() - inicio) / 1000).toFixed(1);
+        const res = document.getElementById('resultado');
+        res.style.display = 'block';
+
+        let apostaHtml = '';
+        if (apostaFeita) {
+          const ganhou = apostaFeita.sapo === ev.nome;
+          if (ganhou) {
+            pontos += apostaFeita.valor;
+            apostaHtml = `<div class="res-aposta ganhou">+ ${apostaFeita.valor} pts &nbsp;·&nbsp; Total: ${pontos} pts</div>`;
+          } else {
+            pontos -= apostaFeita.valor;
+            apostaHtml = `<div class="res-aposta perdeu">- ${apostaFeita.valor} pts &nbsp;·&nbsp; Total: ${pontos} pts</div>`;
+          }
+          atualizarPontosBadge();
+        }
+
+        const sapoData = SAPOS[idx];
+        res.innerHTML = `
+          <div class="res-label">Vencedor da Corrida</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0;">
+            <img src="${sapoData.imagem}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--gold);background:#000;">
+            <span class="res-nome">${ev.nome}</span>
+          </div>
+          <div class="res-detalhe">${elapsed}s &nbsp;·&nbsp; ${totalSaltos} saltos totais</div>
+          ${apostaHtml}
+        `;
+      }
+
+      if (ev.tipo === 'fim') {
+        clearInterval(clockInterval);
+        emCorrida = false;
+        es.close();
+        SAPOS.forEach((_, i) => {
+          const nome = document.querySelector(`#raia-${i} .raia-nome`);
+          if (nome) nome.classList.remove('pulsing');
+        });
+        document.getElementById('btn-reset').disabled = false;
+      }
+    };
+  });
+}
+
+function resetar() {
+  if (emCorrida) return;
+  if (es) { es.close(); es = null; }
+  clearInterval(clockInterval);
+  totalSaltos = 0;
+  apostaFeita = null;
+  sapoSelecionado = null;
+
+  SAPOS.forEach((s, i) => {
+    const bar = document.getElementById(`bar-${i}`);
+    const posEl = document.getElementById(`pos-${i}`);
+    const raia = document.getElementById(`raia-${i}`);
+    const badge = raia.querySelector('.badge-vencedor');
+    const nomeEl = raia.querySelector('.raia-nome');
+    if (bar) bar.style.width = '4%';
+    if (posEl) posEl.textContent = `0 / ${DIST} m`;
+    if (raia) raia.classList.remove('vencedor');
+    if (badge) badge.remove();
+    if (nomeEl) nomeEl.classList.remove('pulsing');
+  });
+
+  document.querySelectorAll('.sapo-option').forEach(o => {
+    o.classList.remove('selected');
+    o.style.pointerEvents = '';
+    o.style.opacity = '';
+  });
+  document.getElementById('slider').disabled = false;
+  document.getElementById('btn-apostar').disabled = true;
+  document.getElementById('aposta-resumo').style.display = 'none';
+  document.getElementById('aposta-resumo').innerHTML = '';
+
+  document.getElementById('stat-saltos').textContent = '0';
+  document.getElementById('stat-tempo').textContent = '0.0s';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('resultado').innerHTML = '';
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-reset').disabled = true;
+
+  if (pontos <= 0) {
+    pontos = 100;
+    atualizarPontosBadge();
+  }
+}
+
+// Init
+atualizarSlider();
+</script>
+</body>
+</html>
